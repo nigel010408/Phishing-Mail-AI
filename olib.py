@@ -1,2 +1,1 @@
-print("Sigma!")
-print("Nigel is niger!")
+print("Nigel = Nigger")
