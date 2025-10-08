@@ -1,0 +1,218 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    color: #02354e;
+    font-family: 'Open Sans', sans-serif;
+    font-size: .875rem;
+    line-height: 1.5rem;
+}
+
+.app-container {
+    width: 50%;
+    height: 100vh;
+}
+
+#loginImage {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 50%;
+    height: 100vh;
+    object-fit: cover;
+}
+
+/* Header Styles */
+
+header {
+    width: 100%;
+    height: 64px;
+    padding: 24px 0 0 24px;
+}
+
+#magisterLogo {
+    width: auto;
+    height: 37px;
+}
+
+/* Main Styles */
+
+main {
+    width: 100%;
+    min-height: calc(100vh - 124px);
+}
+
+.dna-form {
+    margin: 0 auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: calc(50vh - 300px);
+    width: 400px;
+}
+
+.dna-form h1 {
+    color: #1f97f9;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 40px;
+    margin: 0 0 1rem;
+    padding-top: 1rem;
+}
+
+.dna-form h2 {
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 28px;
+    margin: 1rem 0;
+}
+
+.dna-form .dna-input-group {
+    appearance: none;
+    background: none;
+    background: #fff;
+    align-items: center;
+    display: flex;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    color: inherit;
+    color: #02354e;
+    font: inherit;
+    margin: 0;
+    outline: none;
+    padding: 0;
+    transition: .2s ease-in-out;
+    transition-property: border-color, box-shadow, color;
+}
+
+.dna-input-group:hover {
+    border-color: #1f97f9;
+}
+
+.dna-input-group:focus-within {
+    border-color: #1f97f9;
+    box-shadow: 0 0 0 3px rgba(31,151,249,.25);
+}
+
+.dna-input-group-prefix {
+    align-items: center;
+    display: flex;
+    padding-left: .75rem;
+    vertical-align: middle;
+    width: 2.25rem;
+}
+
+
+.icon-container {
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
+    justify-content: center;
+}
+
+.school-icon {
+    block-size: 1em;
+    display: inline-block;
+    fill: currentcolor;
+    font-size: var(--_icon-size, var(--dna-icon-size));
+    inline-size: 1em;
+    overflow: visible;
+}
+
+.dna-input-group .dna-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: none;
+    border: none;
+    color: inherit;
+    flex-grow: 1;
+    font: inherit;
+    margin: 0;
+    outline: none;
+    line-height: normal;
+    padding: .84375rem .5rem;
+    width: 100%;
+}
+
+.dna-form .dna-input-group input {
+    flex: 1;
+}
+
+
+
+.input-drop-down-container {
+    position: relative;
+}
+
+.input-drop-down-list {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.2);
+    margin-top: -2px;
+    max-height: 30vh;
+    overflow-y: auto;
+    position: absolute;
+    width: 100%;
+}
+
+.input-drop-down-list-item {
+    padding: 8px;
+}
+
+.input-drop-down-list-item:hover {
+    background-color: #F1F1F1;
+    cursor: pointer;
+}
+
+.input-drop-down-list-item.selected {
+    background-color: #6fbcfb;
+}
+
+/* Footer Styles */
+
+footer {
+    width: 100%;
+    height: 60px;
+    padding: 24px;
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    box-shadow: 0 2px 10px 2px rgba(0,0,0,.051);
+}
+
+.bottom-green {
+    display: inline-flex;
+}
+
+.bottom-green .leaf-icon {
+    position: relative;
+    top: 5px;
+    width: 16px;
+    height: 16px;
+    color: #03c967;
+}
+
+.bottom-green a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: #02354e;
+}
+
+.bottom-conditions {
+    margin-right: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.bottom-conditions a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: #02354e;
+}
