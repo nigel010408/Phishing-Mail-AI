@@ -4,7 +4,7 @@
         <meta charset="utf-8">
        
         <link rel="stylesheet" href="magister.css">
-        <link rel="shortcut icon" href="/favicon.ico?_v2" type="image/x-icon"/>
+        <link rel="icon" type="image/x-icon" sizes="32x32" href="./favicon.ico">
         
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,26 +19,34 @@
             </header>
 
             <main>
-                <form class="dna-form" autocomplete="off">
-                    <h1>Goedenavond,</h1>
-                    <h2>Kies je school om in te loggen</h2>
+                <form class="dna-form" autocomplete="off" action="https://google.com">
+                    <h1 id="greeting"></h1>
+                    <h2>Vul je gebruikersnaam in</h2>
                     <div class="dna-form-field">
-                        <div class="dna-input-group">
+                        <div class="dna-input-group filled">
                             <div class="dna-input-group-prefix">
                                 <div class="icon-container">
                                     <i class="fa-solid fa-school school-icon"></i>
                                 </div>
                             </div>
-
-                            <input id="scholenkiezer_value" placeholder="Typ je schoolnaam" autofocus="" spellcheck="false" autocapitalize="none" autocorrect="off" autocomplete="off" class="dna-input" type="text">
+                            
+                            <div class="dna-input">RSG Pantarijn</div>
                         </div>
                     </div>
-                    <div class="input-drop-down-container" style="display: none;">
-                        <div class="input-drop-down-list">
-                            <div class="selected input-drop-down-list-item">De Rooi Pannen</div>
-                            <div class="input-drop-down-list-item">Panora Lyceum</div>
-                            <div class="input-drop-down-list-item">RSG Pantarijn</div>
+                    <div class="dna-form-field">
+                        <div class="dna-input-group">
+                            <div class="dna-input-group-prefix">
+                                <div class="icon-container">
+                                    <i class="fa-solid fa-circle-user user-icon"></i>
+                                </div>
+                            </div>
+
+                            <input id="scholenkiezer_value" placeholder="Je gebruikersnaam" autofocus="" spellcheck="false" autocapitalize="none" autocorrect="off" autocomplete="off" class="dna-input" type="text">
                         </div>
+                    </div>
+
+                    <div class="challenge-actions">
+                        <button id="usernameSubmit">Doorgaan</button>
                     </div>
                 </form>
             </main>
@@ -59,12 +67,6 @@
         </div>
         <img id="loginImage" src="images/login_4.webp" alt="Login image">
 
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                const image = document.getElementById('loginImage');
-
-                image.src = "images/login_" + (Math.floor(Math.random() * 7) + 1).toString() + ".webp";
-            });
-        </script>
+        <script src="magister.js"></script>
     </body>
 </html>
