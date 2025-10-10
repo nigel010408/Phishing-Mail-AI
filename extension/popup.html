@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Gmail API Extension</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <div id="menu">
+      <div id="menuHeader">
+        <img id="profileImage" src="https://via.placeholder.com/32" alt="Profile">
+        <span id="userEmail">user@example.com</span>
+      </div>
+      <ol>
+        <li onclick="openPage('home')">Home</li>
+        <li onclick="openPage('contact')">Contact</li>
+      </ol>
+    </div>
+
+    <div id="pages">
+      <div class="page" id="homePage">Home Page</div>
+      <div class="page" id="contactPage">Contact Page</div>
+    </div>
+
+    <h2>Recent Emails</h2>
+    <button id="auth">Login</button>
+    <button id="getEmails">Get Emails</button>
+    <button id="testServer">Test Server</button>
+
+    <p id="aiResult"></p>
+    <ul id="emailList"></ul>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
