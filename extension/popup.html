@@ -1,34 +1,45 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Gmail API Extension</title>
-    <link rel="stylesheet" href="popup.css">
-  </head>
-  <body>
-    <div id="menu">
-      <div id="menuHeader">
-        <img id="profileImage" src="https://via.placeholder.com/32" alt="Profile">
-        <span id="userEmail">user@example.com</span>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Extension Popup</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+
+    <div class="header">
+      <button id="menuToggle">☰</button>
+      <span>My Extension</span>
+    </div>
+
+    <div class="menu" id="menu">
+      <button class="menu-button" data-page="home">Home</button>
+      <button class="menu-button" data-page="account">Account</button>
+    </div>
+
+    <div class="content">
+      <div class="page active" id="home">
+        <button id="getEmails">Get emails</button>
+        <h2>emails</h2>
+        <ul id="emailList">
+
+        </ul>
       </div>
-      <ol>
-        <li onclick="openPage('home')">Home</li>
-        <li onclick="openPage('contact')">Contact</li>
-      </ol>
-    </div>
 
-    <div id="pages">
-      <div class="page" id="homePage">Home Page</div>
-      <div class="page" id="contactPage">Contact Page</div>
-    </div>
+      <div class="page" id="account">
+        <h2>Account</h2>
+        <p>Username: User123</p>
+        <button id="auth">Login</button>
 
-    <h2>Recent Emails</h2>
-    <button id="auth">Login</button>
-    <button id="getEmails">Get Emails</button>
-    <button id="testServer">Test Server</button>
+        <h2>Settings</h2>
+        <label>
+          <input type="checkbox"> Enable feature
+        </label>
+      </div>
 
-    <p id="aiResult"></p>
-    <ul id="emailList"></ul>
+  </div>
 
-    <script src="popup.js"></script>
-  </body>
+  <script src="popup.js"></script>
+</body>
 </html>
