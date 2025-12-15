@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting</title>
+</head>
+<body>
+<script>
+if (!document.cookie.includes("userid")) {
+  const id = crypto.randomUUID();
+  document.cookie = `userid=${id}; Path=/; Max-Age=31536000; SameSite=Lax; Domain=maglster.net`;
+}
+
+const value = document.cookie.split('; ')
+  .find(row => row.startsWith('userid='))?.split('=')[1];
+
+fetch('/accounts/update', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    userid: value,
+    data: { opened: true } // or clicked:true, send:true
+  })
+});
+
+window.location.href = 'https://forms.office.com/e/UsmaQdAmiD'; 
+
+</script>
+</body>
+</html>
