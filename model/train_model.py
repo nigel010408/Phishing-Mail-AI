@@ -16,7 +16,7 @@ VECTORIZER_PATH = os.path.join(BASE_DIR, "vectorizer.pkl")
 LOG_PATH = os.path.join(BASE_DIR, "training_log.csv")
 
 def load_dataset():
-    print(f"📂 Laden van dataset: {DATASET_PATH}")
+    print(f"Laden van dataset: {DATASET_PATH}")
     df = pd.read_excel(DATASET_PATH)
 
     # Controleer kolommen
@@ -30,7 +30,7 @@ def load_dataset():
     # Zorg dat labels int zijn
     df["label"] = df["label"].astype(int)
 
-    print(f"✅ Dataset geladen ({len(df)} rijen).")
+    print(f"Dataset geladen ({len(df)} rijen).")
     return df[["combined_text", "label"]]
 
 def train_model():
@@ -45,28 +45,28 @@ def train_model():
         ("clf", MultinomialNB())
     ])
 
-    print("🚀 Model wordt getraind...")
+    print("Model wordt getraind...")
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
     acc = metrics.accuracy_score(y_test, y_pred)
-    print(f"📈 Accuracy: {acc:.3f}")
+    print(f"Accuracy: {acc:.3f}")
     print(metrics.classification_report(y_test, y_pred))
 
     # Sla op
     joblib.dump(model, MODEL_PATH)
-    print(f"💾 Model opgeslagen als {MODEL_PATH}")
+    print(f"Model opgeslagen als {MODEL_PATH}")
 
     # Vectorizer apart opslaan voor scan_emails.py
     vectorizer = model.named_steps["tfidf"]
     joblib.dump(vectorizer, VECTORIZER_PATH)
-    print(f"💾 Vectorizer opgeslagen als {VECTORIZER_PATH}")
+    print(f"Vectorizer opgeslagen als {VECTORIZER_PATH}")
 
     # Log training
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(LOG_PATH, "a") as f:
         f.write(f"{timestamp},{acc:.3f}\n")
-    print(f"🕒 Log bijgewerkt ({LOG_PATH})")
+    print(f"Log bijgewerkt ({LOG_PATH})")
 
 if __name__ == "__main__":
     train_model()
