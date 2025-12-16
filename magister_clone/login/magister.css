@@ -1,0 +1,9 @@
+#redirect {
+    display: none;
+    justify-content: center;
+}
+
+.dna-input-group:focus-within {
+    border-color: #1f97f9;
+    box-shadow: 0 0 0 3px rgba(31, 151, 249, .25);
+}

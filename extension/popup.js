@@ -1,16 +1,40 @@
-document.addEventListener("DOMContentLoaded", async () => {
-	try {
-		const res = await fetch("http://mail.mijnkreft.site:3000/status", {
-            credentials: "include"
-        });
-		const status = await res.json(); // ✅ need await here
-        
-        document.getElementById("userEmail").innerText = status.loggedIn ? status.email : "Not logged in";
-    } catch (err) {
-        console.error("Error checking status:", err);
-        document.getElementById("userEmail").innerText = "Error fetching status";
-    }
+const menu = document.getElementById("menu");
+const menuToggle = document.getElementById("menuToggle");
+const pages = document.querySelectorAll(".page");
+
+menuToggle.addEventListener("click", () => {
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
 });
+
+menu.querySelectorAll(".menu-button").forEach(button => {
+  button.addEventListener("click", () => {
+    const pageId = button.dataset.page;
+
+    pages.forEach(p => p.classList.remove("active"));
+    document.getElementById(pageId).classList.add("active");
+
+    menu.style.display = "none";
+  });
+});
+
+
+
+
+
+
+// document.addEventListener("DOMContentLoaded", async () => {
+// 	try {
+// 		const res = await fetch("http://mail.mijnkreft.site:3000/status", {
+//             credentials: "include"
+//         });
+// 		const status = await res.json(); // ✅ need await here
+        
+//         document.getElementById("userEmail").innerText = status.loggedIn ? status.email : "Not logged in";
+//     } catch (err) {
+//         console.error("Error checking status:", err);
+//         document.getElementById("userEmail").innerText = "Error fetching status";
+//     }
+// });
 
 document.getElementById("auth").addEventListener("click", () => {
     chrome.tabs.create({ url: "http://mail.mijnkreft.site:3000/auth" });
