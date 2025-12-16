@@ -16,28 +16,43 @@ VECTORIZER_PATH = os.path.join(BASE_DIR, "vectorizer.pkl")
 LOG_PATH = os.path.join(BASE_DIR, "training_log.csv")
 
 def load_dataset():
-    print(f"Laden van dataset: {DATASET_PATH}")
-    df = pd.read_excel(DATASET_PATH)
+    print("Laden van Hugging Face phishing dataset...")
 
-    # Controleer kolommen
-    required = {"Subject", "Text", "label"}
-    if not required.issubset(df.columns):
+    splits = {
+        "train": "data/train-00000-of-00001.parquet",
+        "test": "data/test-00000-of-00001.parquet"
+    }
+
+    df_train = pd.read_parquet(
+        "hf://datasets/drorrabin/phishing_emails-data/" + splits["train"]
+    )
+    df_test = pd.read_parquet(
+        "hf://datasets/drorrabin/phishing_emails-data/" + splits["test"]
+    )
+
+    print(f"Train rows: {len(df_train)}, Test rows: {len(df_test)}")
+
+    # Expected columns: text, label
+    required = {"text", "label"}
+    if not required.issubset(df_train.columns):
         raise ValueError(f"Dataset mist vereiste kolommen: {required}")
 
-    # Combineer subject + tekst in één veld
-    df["combined_text"] = df["Subject"].astype(str) + " " + df["Text"].astype(str)
+    # Ensure correct types
+    df_train["text"] = df_train["text"].astype(str)
+    df_test["text"] = df_test["text"].astype(str)
+    df_train["label"] = df_train["label"].astype(int)
+    df_test["label"] = df_test["label"].astype(int)
 
-    # Zorg dat labels int zijn
-    df["label"] = df["label"].astype(int)
-
-    print(f"Dataset geladen ({len(df)} rijen).")
-    return df[["combined_text", "label"]]
+    return df_train, df_test
 
 def train_model():
-    df = load_dataset()
-    X_train, X_test, y_train, y_test = train_test_split(
-        df["combined_text"], df["label"], test_size=0.2, random_state=42
-    )
+    df_train, df_test = load_dataset()
+
+    X_train = df_train["text"]
+    y_train = df_train["label"]
+    X_test = df_test["text"]
+    y_test = df_test["label"]
+
 
     # Maak pipeline
     model = Pipeline([
