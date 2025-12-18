@@ -16,7 +16,7 @@ def classify_email(subject, text):
 
 if __name__ == "__main__":
     # Voorbeeld
-    subj = "Your account has been locked!"
-    body = "Please verify your password to regain access."
+    subj = input("subject: ")
+    body = input("body: ")
     label, conf = classify_email(subj, body)
     print(f"🔍 Resultaat: {label} (zekerheid {conf})")
