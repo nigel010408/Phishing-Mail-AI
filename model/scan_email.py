@@ -6,8 +6,8 @@ MODEL_PATH = os.path.join(BASE_DIR, "model.pkl")
 
 model = joblib.load(MODEL_PATH)
 
-def classify_email(subject, text):
-    combined = f"{subject} {text}"
+def classify_email(subject, body):
+    combined = f"Subject: {subject}\nBody: {body}"
     prediction = model.predict([combined])[0]
     proba = model.predict_proba([combined])[0]
     confidence = round(max(proba), 2)
@@ -15,8 +15,4 @@ def classify_email(subject, text):
     return label, confidence
 
 if __name__ == "__main__":
-    # Voorbeeld
-    subj = input("subject: ")
-    body = input("body: ")
-    label, conf = classify_email(subj, body)
-    print(f"🔍 Resultaat: {label} (zekerheid {conf})")
+    pass

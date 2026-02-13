@@ -2,20 +2,43 @@ import os
 import pandas as pd
 import joblib
 from datetime import datetime
-from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn import metrics
 
-# Dataset paths
 BASE_DIR = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(BASE_DIR, "model.pkl")
 VECTORIZER_PATH = os.path.join(BASE_DIR, "vectorizer.pkl")
 LOG_PATH = os.path.join(BASE_DIR, "training_log.csv")
 
+
+def extract_subject_body(text):
+    """
+    Extract subject and body from dataset text
+    and return clean formatted string.
+    """
+    subject = ""
+    body = text
+
+    if "Email Subject:" in text:
+        try:
+            after_subject = text.split("Email Subject:", 1)[1]
+
+            if "Email Body:" in after_subject:
+                subject, body = after_subject.split("Email Body:", 1)
+            else:
+                subject = after_subject
+                body = ""
+
+        except Exception:
+            pass
+
+    return f"Subject: {subject.strip()}\nBody: {body.strip()}"
+
+
 def load_dataset():
-    print("Loading Hugging Face phishing dataset...")
+    print("Laden van Hugging Face phishing dataset...")
 
     splits = {
         "train": "data/train-00000-of-00001.parquet",
@@ -29,63 +52,69 @@ def load_dataset():
         "hf://datasets/drorrabin/phishing_emails-data/" + splits["test"]
     )
 
-    print(f"Training rows: {len(df_train)}, Test rows: {len(df_test)}")
+    print(f"Train rows: {len(df_train)}, Test rows: {len(df_test)}")
 
-    # Expected columns: text, label
     required = {"text", "email_type"}
-    print(df_train.columns)
     if not required.issubset(df_train.columns):
-        raise ValueError(f"Dataset is missing required columns: {required}")
+        raise ValueError(f"Dataset mist vereiste kolommen: {required}")
 
     # Ensure correct types
     label_map = {
-        "safe email": 0,
-        "phishing email": 1
+        "phishing email": 1,
+        "safe email": 0
     }
 
     df_train["text"] = df_train["text"].astype(str)
     df_test["text"] = df_test["text"].astype(str)
-    df_train["label"] = df_train["email_type"].map(label_map)
-    df_test["label"] = df_test["email_type"].map(label_map)
+    df_train["label"] = df_train["email_type"].map(label_map).astype(int)
+    df_test["label"] = df_test["email_type"].map(label_map).astype(int)
+
+    # Apply clean formatting
+    df_train["clean_text"] = df_train["text"].apply(extract_subject_body)
+    df_test["clean_text"] = df_test["text"].apply(extract_subject_body)
 
     return df_train, df_test
+
 
 def train_model():
     df_train, df_test = load_dataset()
 
-    X_train = df_train["text"]
+    X_train = df_train["clean_text"]
     y_train = df_train["label"]
-    X_test = df_test["text"]
+    X_test = df_test["clean_text"]
     y_test = df_test["label"]
 
-    # Create pipeline
     model = Pipeline([
-        ("tfidf", TfidfVectorizer(stop_words="english", max_features=5000)),
+        ("tfidf", TfidfVectorizer(
+            stop_words="english",
+            max_features=5000,
+            ngram_range=(1, 2)
+        )),
         ("clf", MultinomialNB())
     ])
 
-    print("Training model...")
+    print("Model wordt getraind...")
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
     acc = metrics.accuracy_score(y_test, y_pred)
+
     print(f"Accuracy: {acc:.3f}")
     print(metrics.classification_report(y_test, y_pred))
 
-    # Save model
     joblib.dump(model, MODEL_PATH)
-    print(f"Model saved as {MODEL_PATH}")
+    print(f"Model opgeslagen als {MODEL_PATH}")
 
-    # Save vectorizer separately for scan_emails.py
     vectorizer = model.named_steps["tfidf"]
     joblib.dump(vectorizer, VECTORIZER_PATH)
-    print(f"Vectorizer saved as {VECTORIZER_PATH}")
+    print(f"Vectorizer opgeslagen als {VECTORIZER_PATH}")
 
-    # Log training
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(LOG_PATH, "a") as f:
         f.write(f"{timestamp},{acc:.3f}\n")
-    print(f"Training log updated ({LOG_PATH})")
+
+    print(f"Log bijgewerkt ({LOG_PATH})")
+
 
 if __name__ == "__main__":
     train_model()
