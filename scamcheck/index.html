@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScamCheck Test</title>
+</head>
+<body>
+    <h2>ScamCheck Test</h2>
+
+    <button onclick="login()">Login with Google</button>
+    <button onclick="loadEmails()">Analyze Emails</button>
+
+    <pre id="output"></pre>
+
+    <script>
+        function login() {
+            window.location.href = "/login";
+        }
+
+        async function loadEmails() {
+            const res = await fetch("/emails");
+            const data = await res.json();
+            document.getElementById("output").textContent =
+                JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>
