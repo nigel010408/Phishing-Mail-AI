@@ -416,11 +416,94 @@ def train(
 # 9. EVALUATION FUNCTION
 # ─────────────────────────────────────────────
 
+def print_results_table(y_test: np.ndarray, y_pred: np.ndarray):
+    """
+    Print a classification report table styled after the reference image:
+
+        ┌──────────────┬───────────┬────────┬──────────┬─────────┐
+        │              │ precision │ recall │ F1-score │ Support │
+        ├──────────────┼───────────┼────────┼──────────┼─────────┤
+        │ 0            │      0.99 │   1.00 │     1.00 │    3369 │
+        │ 1            │      0.97 │   0.95 │     0.96 │     336 │
+        │ accuracy     │           │        │     0.99 │    3705 │
+        │ macro avg    │      0.98 │   0.97 │     0.98 │    3705 │
+        │ weighted avg │      0.99 │   0.99 │     0.99 │    3705 │
+        └──────────────┴───────────┴────────┴──────────┴─────────┘
+    """
+    from sklearn.metrics import precision_recall_fscore_support
+
+    labels_uniq = sorted(np.unique(y_test))
+    n_total     = len(y_test)
+
+    # Per-class metrics
+    prec, rec, f1, sup = precision_recall_fscore_support(
+        y_test, y_pred, labels=labels_uniq
+    )
+
+    # Macro / weighted averages
+    prec_mac, rec_mac, f1_mac, _ = precision_recall_fscore_support(
+        y_test, y_pred, average="macro"
+    )
+    prec_w, rec_w, f1_w, _ = precision_recall_fscore_support(
+        y_test, y_pred, average="weighted"
+    )
+    acc_val = accuracy_score(y_test, y_pred)
+
+    # ── Column widths ──────────────────────────────────────────────
+    col0_w  = 14   # row label
+    num_w   = 11   # precision / recall / f1
+    sup_w   = 9    # support
+
+    # ── Helpers ────────────────────────────────────────────────────
+    hline_top = (
+        "┌" + "─" * col0_w + "┬" + "─" * num_w + "┬" + "─" * num_w +
+        "┬" + "─" * num_w + "┬" + "─" * sup_w + "┐"
+    )
+    hline_mid = (
+        "├" + "─" * col0_w + "┼" + "─" * num_w + "┼" + "─" * num_w +
+        "┼" + "─" * num_w + "┼" + "─" * sup_w + "┤"
+    )
+    hline_bot = (
+        "└" + "─" * col0_w + "┴" + "─" * num_w + "┴" + "─" * num_w +
+        "┴" + "─" * num_w + "┴" + "─" * sup_w + "┘"
+    )
+
+    def row(label, p, r, f, s, blank_pr=False):
+        p_str = f"{p:.2f}".rjust(num_w - 2) if not blank_pr else " " * (num_w - 2)
+        r_str = f"{r:.2f}".rjust(num_w - 2) if not blank_pr else " " * (num_w - 2)
+        f_str = f"{f:.2f}".rjust(num_w - 2)
+        s_str = str(int(s)).rjust(sup_w - 2)
+        label_str = label.ljust(col0_w - 2)
+        return (
+            f"│ {label_str} │ {p_str} │ {r_str} │ {f_str} │ {s_str} │"
+        )
+
+    header = (
+        f"│ {'':>{col0_w - 2}} │ {'precision':>{num_w - 2}} │"
+        f" {'recall':>{num_w - 2}} │ {'F1-score':>{num_w - 2}} │"
+        f" {'Support':>{sup_w - 2}} │"
+    )
+
+    # ── Print ──────────────────────────────────────────────────────
+    print()
+    print(hline_top)
+    print(header)
+    print(hline_mid)
+    for i, lbl in enumerate(labels_uniq):
+        print(row(str(lbl), prec[i], rec[i], f1[i], sup[i]))
+    print(hline_mid)
+    print(row("accuracy",     acc_val, acc_val, acc_val, n_total, blank_pr=True))
+    print(row("macro avg",    prec_mac, rec_mac, f1_mac, n_total))
+    print(row("weighted avg", prec_w,   rec_w,   f1_w,   n_total))
+    print(hline_bot)
+    print()
+
+
 def evaluate(agent: DQNAgent, X_test: np.ndarray, y_test: np.ndarray):
     """
     Evaluate the trained agent greedily (ε=0) on held-out test data.
 
-    Prints accuracy, confusion matrix, and full classification report.
+    Prints accuracy, confusion matrix, and a styled classification table.
     """
     print("=" * 60)
     print("  EVALUATION  –  Test Set")
@@ -442,19 +525,18 @@ def evaluate(agent: DQNAgent, X_test: np.ndarray, y_test: np.ndarray):
     y_pred = np.array(predictions)
     acc = accuracy_score(y_test, y_pred)
     cm  = confusion_matrix(y_test, y_pred)
-    report = classification_report(
-        y_test, y_pred, target_names=["Legitimate", "Phishing"]
-    )
 
-    print(f"\n  Accuracy : {acc * 100:.2f}%\n")
-    print("  Confusion Matrix:")
+    # ── Confusion matrix ──────────────────────────────────────────
+    print(f"\n  Confusion Matrix:")
     print(f"    TN={cm[0,0]:>4}  FP={cm[0,1]:>4}")
-    print(f"    FN={cm[1,0]:>4}  TP={cm[1,1]:>4}\n")
-    print("  Classification Report:")
-    for line in report.splitlines():
-        print("   ", line)
+    print(f"    FN={cm[1,0]:>4}  TP={cm[1,1]:>4}")
+
+    # ── Styled table (matches reference image) ────────────────────
+    print_results_table(y_test, y_pred)
+
     print("=" * 60 + "\n")
 
+    report = classification_report(y_test, y_pred)
     return acc, cm, report
 
 
