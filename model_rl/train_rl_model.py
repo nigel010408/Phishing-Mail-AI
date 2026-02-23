@@ -1,11 +1,3 @@
-# =============================================================================
-# Phishing Detection with Deep Q-Network (DQN) Reinforcement Learning
-# Dataset: https://huggingface.co/datasets/drorrabin/phishing_emails-data
-# =============================================================================
-
-# ─────────────────────────────────────────────
-# 1. IMPORTS
-# ─────────────────────────────────────────────
 import numpy as np
 import random
 import pickle
@@ -20,7 +12,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 
-# Optional: load from HuggingFace Hub
+# load from huggingface if possible
 try:
     from datasets import load_dataset
     HF_AVAILABLE = True
@@ -28,11 +20,9 @@ except ImportError:
     HF_AVAILABLE = False
 
 
-# ─────────────────────────────────────────────
-# 2. LOAD VECTORIZER
-# ─────────────────────────────────────────────
+# load vector
 VECTORIZER_PATH = "tfidf_vectorizer.pkl"
-MAX_FEATURES = 500   # TF-IDF vocabulary size → state space dimension
+MAX_FEATURES = 500
 
 
 def load_or_create_vectorizer(texts=None):
@@ -57,11 +47,8 @@ def load_or_create_vectorizer(texts=None):
     return vectorizer
 
 
-# ─────────────────────────────────────────────
-# 3. EXAMPLE DATASET DEFINITION
-# ─────────────────────────────────────────────
+# example dataset if hugginface fails
 FALLBACK_EMAILS = [
-    # Phishing (label=1)
     ("Congratulations! You've won a $1,000 gift card. Click here to claim now!", 1),
     ("Your bank account has been suspended. Verify your identity immediately.", 1),
     ("URGENT: Confirm your PayPal details or your account will be closed.", 1),
@@ -74,7 +61,6 @@ FALLBACK_EMAILS = [
     ("You've been selected for a prize. Send your SSN to claim your reward.", 1),
     ("Delivery failed. Pay $1.99 re-delivery fee via secure link below.", 1),
     ("We detected suspicious activity. Provide your login to restore access.", 1),
-    # Legitimate (label=0)
     ("Hi team, please find attached the Q3 financial report for your review.", 0),
     ("Reminder: The weekly all-hands meeting is scheduled for Friday at 10 AM.", 0),
     ("Your Amazon order #112-3456789 has shipped and will arrive Thursday.", 0),
@@ -99,12 +85,12 @@ def load_dataset_hf():
     try:
         print("[Dataset] Downloading drorrabin/phishing_emails-data from HuggingFace …")
         ds = load_dataset("drorrabin/phishing_emails-data", split="train")
-        # Adjust column names based on actual dataset schema
+        
         text_col = "text" if "text" in ds.column_names else ds.column_names[0]
         label_col = "label" if "label" in ds.column_names else ds.column_names[-1]
         texts = ds[text_col]
         labels = ds[label_col]
-        # Ensure labels are 0/1 integers
+        
         unique = list(set(labels))
         if len(unique) == 2 and not all(isinstance(l, int) for l in labels):
             mapping = {unique[0]: 0, unique[1]: 1}
@@ -120,14 +106,12 @@ def get_dataset():
     texts_hf, labels_hf = load_dataset_hf()
     if texts_hf is not None:
         return texts_hf, labels_hf
-    # Use built-in fallback
+    
     texts, labels = zip(*FALLBACK_EMAILS)
     return list(texts), list(labels)
 
 
-# ─────────────────────────────────────────────
-# 4. TRAIN / TEST SPLIT
-# ─────────────────────────────────────────────
+# split data
 
 def prepare_data(vectorizer, texts, labels, test_size=0.2, random_state=42):
     """Vectorize text and split into train/test arrays."""
@@ -139,10 +123,6 @@ def prepare_data(vectorizer, texts, labels, test_size=0.2, random_state=42):
     print(f"[Split] Train: {len(X_train)} | Test: {len(X_test)}")
     return X_train, X_test, y_train, y_test
 
-
-# ─────────────────────────────────────────────
-# 5. ENVIRONMENT CLASS
-# ─────────────────────────────────────────────
 
 class PhishingEnv:
     """
@@ -158,7 +138,7 @@ class PhishingEnv:
         self.y = y
         self.n_samples = len(X)
         self.state_size = X.shape[1]
-        self.action_size = 2          # {0: legitimate, 1: phishing}
+        self.action_size = 2
         self.current_idx = 0
         self.indices = np.arange(self.n_samples)
         np.random.shuffle(self.indices)
@@ -182,7 +162,7 @@ class PhishingEnv:
         done = self.current_idx >= self.n_samples
 
         if done:
-            next_state = self.reset()   # auto-reset
+            next_state = self.reset()
         else:
             next_state = self.X[self.indices[self.current_idx]]
 
@@ -192,9 +172,7 @@ class PhishingEnv:
         return random.randint(0, self.action_size - 1)
 
 
-# ─────────────────────────────────────────────
-# 6. DQN MODEL CLASS
-# ─────────────────────────────────────────────
+# DQN model
 
 class DQNModel(nn.Module):
     """
@@ -231,9 +209,7 @@ class DQNModel(nn.Module):
         return self.net(x)
 
 
-# ─────────────────────────────────────────────
-# 7. DQN AGENT CLASS
-# ─────────────────────────────────────────────
+# DQN agent
 
 class DQNAgent:
     """
@@ -276,22 +252,18 @@ class DQNAgent:
         self.device = torch.device(device)
         self.step_count = 0
 
-        # Replay buffer
         self.memory: deque = deque(maxlen=memory_size)
 
-        # Networks
         self.policy_net = DQNModel(state_size, action_size).to(self.device)
         self.target_net = DQNModel(state_size, action_size).to(self.device)
         self._sync_target()
 
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=lr)
-        self.loss_fn = nn.SmoothL1Loss()   # Huber loss
+        self.loss_fn = nn.SmoothL1Loss()
 
-    # ── Memory ────────────────────────────────
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
 
-    # ── Action selection (ε-greedy) ───────────
     def act(self, state: np.ndarray) -> int:
         if random.random() < self.epsilon:
             return random.randint(0, self.action_size - 1)
@@ -302,7 +274,6 @@ class DQNAgent:
         self.policy_net.train()
         return int(q_values.argmax(dim=1).item())
 
-    # ── Replay ────────────────────────────────
     def replay(self):
         if len(self.memory) < self.batch_size:
             return None
@@ -316,10 +287,8 @@ class DQNAgent:
         next_states_t = torch.FloatTensor(np.array(next_states)).to(self.device)
         dones_t       = torch.FloatTensor(dones).to(self.device)
 
-        # Current Q-values
         current_q = self.policy_net(states_t).gather(1, actions_t).squeeze(1)
 
-        # Target Q-values (Double DQN style)
         with torch.no_grad():
             next_actions = self.policy_net(next_states_t).argmax(dim=1, keepdim=True)
             next_q = self.target_net(next_states_t).gather(1, next_actions).squeeze(1)
@@ -331,17 +300,14 @@ class DQNAgent:
         torch.nn.utils.clip_grad_norm_(self.policy_net.parameters(), max_norm=1.0)
         self.optimizer.step()
 
-        # Decay epsilon
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
-        # Sync target network
         self.step_count += 1
         if self.step_count % self.target_update_freq == 0:
             self._sync_target()
 
         return loss.item()
 
-    # ── Helpers ───────────────────────────────
     def _sync_target(self):
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
@@ -355,9 +321,7 @@ class DQNAgent:
         print(f"[Agent] Model loaded ← '{path}'")
 
 
-# ─────────────────────────────────────────────
-# 8. TRAINING FUNCTION
-# ─────────────────────────────────────────────
+# model training
 
 def train(
     agent: DQNAgent,
@@ -412,9 +376,7 @@ def train(
     return history
 
 
-# ─────────────────────────────────────────────
-# 9. EVALUATION FUNCTION
-# ─────────────────────────────────────────────
+# evaluation
 
 def print_results_table(y_test: np.ndarray, y_pred: np.ndarray):
     """
@@ -435,12 +397,10 @@ def print_results_table(y_test: np.ndarray, y_pred: np.ndarray):
     labels_uniq = sorted(np.unique(y_test))
     n_total     = len(y_test)
 
-    # Per-class metrics
     prec, rec, f1, sup = precision_recall_fscore_support(
         y_test, y_pred, labels=labels_uniq
     )
 
-    # Macro / weighted averages
     prec_mac, rec_mac, f1_mac, _ = precision_recall_fscore_support(
         y_test, y_pred, average="macro"
     )
@@ -449,12 +409,10 @@ def print_results_table(y_test: np.ndarray, y_pred: np.ndarray):
     )
     acc_val = accuracy_score(y_test, y_pred)
 
-    # ── Column widths ──────────────────────────────────────────────
-    col0_w  = 14   # row label
-    num_w   = 11   # precision / recall / f1
-    sup_w   = 9    # support
+    col0_w  = 14
+    num_w   = 11
+    sup_w   = 9
 
-    # ── Helpers ────────────────────────────────────────────────────
     hline_top = (
         "┌" + "─" * col0_w + "┬" + "─" * num_w + "┬" + "─" * num_w +
         "┬" + "─" * num_w + "┬" + "─" * sup_w + "┐"
@@ -484,7 +442,6 @@ def print_results_table(y_test: np.ndarray, y_pred: np.ndarray):
         f" {'Support':>{sup_w - 2}} │"
     )
 
-    # ── Print ──────────────────────────────────────────────────────
     print()
     print(hline_top)
     print(header)
@@ -510,7 +467,7 @@ def evaluate(agent: DQNAgent, X_test: np.ndarray, y_test: np.ndarray):
     print("=" * 60)
 
     saved_epsilon = agent.epsilon
-    agent.epsilon = 0.0   # pure exploitation
+    agent.epsilon = 0.0
 
     predictions = []
     agent.policy_net.eval()
@@ -526,12 +483,10 @@ def evaluate(agent: DQNAgent, X_test: np.ndarray, y_test: np.ndarray):
     acc = accuracy_score(y_test, y_pred)
     cm  = confusion_matrix(y_test, y_pred)
 
-    # ── Confusion matrix ──────────────────────────────────────────
     print(f"\n  Confusion Matrix:")
     print(f"    TN={cm[0,0]:>4}  FP={cm[0,1]:>4}")
     print(f"    FN={cm[1,0]:>4}  TP={cm[1,1]:>4}")
 
-    # ── Styled table (matches reference image) ────────────────────
     print_results_table(y_test, y_pred)
 
     print("=" * 60 + "\n")
@@ -540,12 +495,7 @@ def evaluate(agent: DQNAgent, X_test: np.ndarray, y_test: np.ndarray):
     return acc, cm, report
 
 
-# ─────────────────────────────────────────────
-# 10. MAIN EXECUTION BLOCK
-# ─────────────────────────────────────────────
-
 if __name__ == "__main__":
-    # ── Reproducibility ───────────────────────
     SEED = 42
     random.seed(SEED)
     np.random.seed(SEED)
@@ -554,22 +504,17 @@ if __name__ == "__main__":
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"\n[Config] Device: {DEVICE.upper()}")
 
-    # ── Dataset ───────────────────────────────
     texts, labels = get_dataset()
 
-    # ── Vectorizer ────────────────────────────
     vectorizer = load_or_create_vectorizer(texts)
 
-    # ── Train / Test Split ────────────────────
     X_train, X_test, y_train, y_test = prepare_data(vectorizer, texts, labels)
 
-    STATE_SIZE  = X_train.shape[1]   # = MAX_FEATURES
-    ACTION_SIZE = 2                  # legitimate / phishing
+    STATE_SIZE  = X_train.shape[1]
+    ACTION_SIZE = 2               
 
-    # ── Environment ───────────────────────────
     train_env = PhishingEnv(X_train, y_train)
 
-    # ── Agent ────────────────────────────────
     agent = DQNAgent(
         state_size=STATE_SIZE,
         action_size=ACTION_SIZE,
@@ -584,18 +529,14 @@ if __name__ == "__main__":
         device=DEVICE,
     )
 
-    # ── Training ─────────────────────────────
     history = train(agent, train_env, n_episodes=60, print_every=10)
 
-    # ── Save model ───────────────────────────
     agent.save("dqn_phishing.pth")
 
-    # ── Evaluation ───────────────────────────
     accuracy, cm, report = evaluate(agent, X_test, y_test)
 
-    # ── Training summary ─────────────────────
     print("[Summary] Training reward progression (every 10 episodes):")
     for ep, avg_r, eps, loss in history[::10]:
-        bar = "█" * int((avg_r + 1) * 20)   # range [-1,+1] → [0,40]
+        bar = "█" * int((avg_r + 1) * 20)
         print(f"  Ep {ep:>3} │ {bar:<40} │ {avg_r:+.3f}")
     print()

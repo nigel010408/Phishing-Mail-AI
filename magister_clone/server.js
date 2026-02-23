@@ -12,7 +12,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// helper: load + save file
+// load and save to data.json
 function loadData() {
   try {
     return JSON.parse(fs.readFileSync('data.json', 'utf8'));
@@ -26,10 +26,10 @@ function saveData(data) {
 }
 
 app.post('/update', (req, res) => {
-  const userId = req.body.userid;   // FIX: read from JSON body
+  const userId = req.body.userid;
   if (!userId) return res.status(400).json({ error: "missing user id" });
 
-  const update = req.body.data;     // { opened: true } etc.
+  const update = req.body.data;
   console.log(update);
 
   const data = loadData();

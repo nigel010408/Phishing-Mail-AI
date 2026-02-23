@@ -12,6 +12,7 @@ MODEL_PATH = os.path.join(BASE_DIR, "model.pkl")
 VECTORIZER_PATH = os.path.join(BASE_DIR, "vectorizer.pkl")
 LOG_PATH = os.path.join(BASE_DIR, "training_log.csv")
 
+# data preprocessing
 
 def extract_subject_body(text):
     """
@@ -36,6 +37,7 @@ def extract_subject_body(text):
 
     return f"Subject: {subject.strip()}\nBody: {body.strip()}"
 
+# dataset loading
 
 def load_dataset():
     print("Laden van Hugging Face phishing dataset...")
@@ -58,7 +60,6 @@ def load_dataset():
     if not required.issubset(df_train.columns):
         raise ValueError(f"Dataset mist vereiste kolommen: {required}")
 
-    # Ensure correct types
     label_map = {
         "phishing email": 1,
         "safe email": 0
@@ -69,12 +70,12 @@ def load_dataset():
     df_train["label"] = df_train["email_type"].map(label_map).astype(int)
     df_test["label"] = df_test["email_type"].map(label_map).astype(int)
 
-    # Apply clean formatting
     df_train["clean_text"] = df_train["text"].apply(extract_subject_body)
     df_test["clean_text"] = df_test["text"].apply(extract_subject_body)
 
     return df_train, df_test
 
+# model training
 
 def train_model():
     df_train, df_test = load_dataset()
